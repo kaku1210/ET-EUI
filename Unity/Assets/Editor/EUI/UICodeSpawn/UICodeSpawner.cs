@@ -55,20 +55,13 @@ public partial class UICodeSpawner
 	
     static public void SpawnDlgCode(GameObject gameObject)
     {
-        // 清空数据
 	    Path2WidgetCachedDict?.Clear();
         Path2WidgetCachedDict = new Dictionary<string, List<Component>>();
         
-        // 找出所有组件 ↑ key:name, value:List<Component>
 		FindAllWidgets(gameObject.transform, "");
 		
-        // 创建system文件( 逻辑控制, 唯一, 不会重复创建 )
         SpawnCodeForDlg(gameObject);
-
-        // 创建event时间 --> ui相关的时间调用 唯一, 不会重复创建
         SpawnCodeForDlgEventHandle(gameObject);
-
-        // 创建view文件( 逻辑控制, 唯一, 不会重复创建 )
         SpawnCodeForDlgModel(gameObject);
         
         SpawnCodeForDlgBehaviour(gameObject);
@@ -79,17 +72,15 @@ public partial class UICodeSpawner
     
     static void SpawnCodeForDlg(GameObject gameObject)
     {
-        // 目录名
         string strDlgName  = gameObject.name;
         string strFilePath = Application.dataPath + "/../Codes/HotfixView/Demo/UI/" + strDlgName ;
         
-        // 如果目录不存在, 就创建目录
+        
         if ( !System.IO.Directory.Exists(strFilePath) )
         {
 	        System.IO.Directory.CreateDirectory(strFilePath);
         }
         
-        // 文件
 	    strFilePath = Application.dataPath + "/../Codes/HotfixView/Demo/UI/" + strDlgName + "/" + strDlgName + "System.cs";
         if(System.IO.File.Exists(strFilePath))
         {
@@ -275,9 +266,7 @@ public partial class UICodeSpawner
         string strDlgName = gameObject.name ;
         string strDlgComponentName =  gameObject.name + "ViewComponent";
 
-        string strFilePath = Application.dataPath + "/../Codes/HotfixView/Demo/" +
-		        "UIBehaviour1" +
-		        "/" + strDlgName;
+        string strFilePath = Application.dataPath + "/../Codes/HotfixView/Demo/UIBehaviour/" + strDlgName;
 
         if ( !System.IO.Directory.Exists(strFilePath) )
         {
@@ -347,7 +336,6 @@ public partial class UICodeSpawner
 	    strBuilder.AppendFormat("\tpublic  class {0} : Entity,IAwake,IDestroy \r\n", strDlgComponentName)
 		    .AppendLine("\t{");
      
-        // 创建绑定组件代码
 	    CreateWidgetBindCode(ref strBuilder, gameObject.transform);
 
 	    CreateDestroyWidgetCode(ref strBuilder);
@@ -403,32 +391,20 @@ public partial class UICodeSpawner
 	 
     }
 
-    /// <summary>
-    /// 生成绑定脚本代码
-    /// </summary>
-    /// <param name="strBuilder"> 输入流 </param>
-    /// <param name="transRoot"> root 物体 </param>
     public static void CreateWidgetBindCode(ref StringBuilder strBuilder, Transform transRoot)
     {
         foreach (KeyValuePair<string, List<Component>> pair in Path2WidgetCachedDict)
         {
-            // pair 对应的是一个 GameObject. value 对应的是 GameObject 下的所有组件
 	        foreach (var info in pair.Value)
 	        {
-                // info 是 每个组件
-		        Component the_widget = info;
-
-                // 获得路径
-				string strPath = GetWidgetPath(the_widget.transform, transRoot);
-
-                // 获得组件类型 --> 因为the_widget 是一个组件，所以可以直接获得组件类型
-				string strClassType = the_widget.GetType().ToString();
+		        Component widget = info;
+				string strPath = GetWidgetPath(widget.transform, transRoot);
+				string strClassType = widget.GetType().ToString();
 				string strInterfaceType = strClassType;
 				
 				if (pair.Key.StartsWith(CommonUIPrefix))
 				{
-                    // ES 开头
-					var subUIClassPrefab = PrefabUtility.GetCorrespondingObjectFromOriginalSource(the_widget);
+					var subUIClassPrefab = PrefabUtility.GetCorrespondingObjectFromOriginalSource(widget);
 					if (subUIClassPrefab==null)
 					{
 						Debug.LogError($"公共UI找不到所属的Prefab! {pair.Key}");
@@ -437,10 +413,7 @@ public partial class UICodeSpawner
 					GetSubUIBaseWindowCode(ref strBuilder, pair.Key,strPath,subUIClassPrefab.name);
 					continue;
 				}
-
-                // 生成的名字为 name + 组件类型的最后一个单词
-                // todo: 改为 name_组件类型
-				string widgetName = the_widget.name + strClassType.Split('.').ToList().Last();
+				string widgetName = widget.name + strClassType.Split('.').ToList().Last();
 				
 				
 				strBuilder.AppendFormat("		public {0} {1}\r\n", strInterfaceType, widgetName);
@@ -513,10 +486,7 @@ public partial class UICodeSpawner
 	    }
     }
 
-/// <summary>
-/// 获取所有组件
-/// </summary>
-public static void FindAllWidgets(Transform trans, string strPath)
+    public static void FindAllWidgets(Transform trans, string strPath)
 	{
 		if (null == trans)
 		{
@@ -524,7 +494,6 @@ public static void FindAllWidgets(Transform trans, string strPath)
 		}
 		for (int nIndex= 0; nIndex < trans.childCount; ++nIndex)
 		{
-            // 遍历trans的子物体
 			Transform child = trans.GetChild(nIndex);
 			string strTemp = strPath+"/"+child.name;
 			
@@ -532,17 +501,14 @@ public static void FindAllWidgets(Transform trans, string strPath)
 			bool isSubUI = child.name.StartsWith(CommonUIPrefix);
 			if (isSubUI || child.name.StartsWith(UIGameObjectPrefix))
 			{
-                // ES EG 开头的
 				List<Component> rectTransfomrComponents = new List<Component>(); 
 				rectTransfomrComponents.Add(child.GetComponent<RectTransform>());
 				Path2WidgetCachedDict.Add(child.name,rectTransfomrComponents);
 			}
 			else if (child.name.StartsWith(UIWidgetPrefix))
 			{
-                // E 开头的
 				foreach (var uiComponent in WidgetInterfaceList)
 				{
-                    // 找出身上所有的组件
 					Component component = child.GetComponent(uiComponent);
 					if (null == component)
 					{
@@ -566,19 +532,10 @@ public static void FindAllWidgets(Transform trans, string strPath)
 				Debug.Log($"遇到子UI：{child.name},不生成子UI项代码");
 				continue;
 			}
-            // 继续递归遍历 子物体身下的子物体
 			FindAllWidgets(child, strTemp);
 		}
 	}
 
-
-    /// <summary>
-    /// 子物体, 根物体. --> 获取从根物体到子物体的路径
-    /// a - b - c - d - e ---> a/b/c/d/e这样子
-    /// </summary>
-    /// <param name="obj"></param>
-    /// <param name="root"></param>
-    /// <returns></returns>
     static string GetWidgetPath(Transform obj, Transform root)
     {
         string path = obj.name;
@@ -643,14 +600,7 @@ public static void FindAllWidgets(Transform trans, string strPath)
         WidgetInterfaceList.Add("UnityEngine.EventSystems.EventTrigger");
     }
 
-    /// <summary>
-    /// 字典  用来记录组件有哪些. string, List<Component>
-    /// </summary>
     private static Dictionary<string, List<Component> > Path2WidgetCachedDict =null;
-
-    /// <summary>
-    /// 这里记录所有可能需要导出的组件名称
-    /// </summary>
     private static List<string> WidgetInterfaceList = null;
     private const string CommonUIPrefix = "ES";
     private const string UIPanelPrefix  = "Dlg";

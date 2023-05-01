@@ -468,35 +468,29 @@ namespace ET
 
 	}
 
-/// <summary>
-/// 对于 C2M_TransferMap 的注释提示信息
-/// </summary>
-[ResponseType(nameof(M2C_TransferMap))]
-[Message(OuterOpcode.C2M_TransferMap)]
-[ProtoContract]
-public partial class C2M_TransferMap: Object, IActorLocationRequest
-{
-	/// <summary>
-	/// 对于每个字段的注释提示信息
-	/// </summary>
-	[ProtoMember(1)]
-	public int RpcId { get; set; }
+	[ResponseType(nameof(M2C_TransferMap))]
+	[Message(OuterOpcode.C2M_TransferMap)]
+	[ProtoContract]
+	public partial class C2M_TransferMap: Object, IActorLocationRequest
+	{
+		[ProtoMember(1)]
+		public int RpcId { get; set; }
 
-}
+	}
 
-[Message(OuterOpcode.M2C_TransferMap)]
-[ProtoContract]
-public partial class M2C_TransferMap: Object, IActorLocationResponse
-{
-	[ProtoMember(90)]
-	public int RpcId { get; set; }
+	[Message(OuterOpcode.M2C_TransferMap)]
+	[ProtoContract]
+	public partial class M2C_TransferMap: Object, IActorLocationResponse
+	{
+		[ProtoMember(90)]
+		public int RpcId { get; set; }
 
-	[ProtoMember(91)]
-	public int Error { get; set; }
+		[ProtoMember(91)]
+		public int Error { get; set; }
 
-	[ProtoMember(92)]
-	public string Message { get; set; }
+		[ProtoMember(92)]
+		public string Message { get; set; }
 
-}
+	}
 
 }
