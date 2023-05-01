@@ -36,6 +36,8 @@ namespace ET
             
             Game.Scene.AddComponent<NavmeshComponent, Func<string, byte[]>>(RecastFileReader.Read);
 
+            // 可以在这里 给 GameScene 挂载 DBManagerComponent --> 无论是哪个服务器 都可以操控数据库
+            Game.Scene.AddComponent<DBManagerComponent>();
             switch (Game.Options.AppType)
             {
                 case AppType.Server:
